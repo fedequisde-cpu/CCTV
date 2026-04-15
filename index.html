@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIGO · CONTROL CENTER</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg: #020508;
+    --bg2: #050d12;
+    --panel: #060f16;
+    --border: #0a2030;
+    --accent: #00e5ff;
+    --accent2: #00ff88;
+    --warn: #ff6b00;
+    --danger: #ff2244;
+    --dim: #1a3040;
+    --text: #a0c8d8;
+    --text-bright: #d0eaf5;
+    --grid-line: rgba(0, 229, 255, 0.04);
+    --glow: 0 0 20px rgba(0, 229, 255, 0.15);
+    --cam-w: 320px;
+    --cam-h: 240px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* SCAN LINE */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -100%;
+    left: 0;
+    right: 0;
+    height: 200%;
+    background: linear-gradient(transparent 50%, rgba(0,229,255,0.012) 50%);
+    background-size: 100% 4px;
+    animation: scanlines 0.1s steps(1) infinite;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  @keyframes scanlines {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(4px); }
+  }
+
+  /* HEADER */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(2, 5, 8, 0.95);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    border: 1.5px solid var(--accent);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 0 12px rgba(0,229,255,0.3), inset 0 0 12px rgba(0,229,255,0.05);
+  }
+
+  .logo-icon::before {
+    content: '';
+    width: 14px;
+    height: 10px;
+    border: 1.5px solid var(--accent);
+    border-radius: 2px;
+    position: absolute;
+  }
+
+  .logo-icon::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    box-shadow: 0 0 6px var(--accent);
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .logo-text h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--text-bright);
+    line-height: 1;
+  }
+
+  .logo-text span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.25em;
+    opacity: 0.8;
+  }
+
+  .header-center {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .status-bar {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 6px var(--accent2);
+    animation: blink 1.5s ease-in-out infinite;
+  }
+
+  .dot.warn { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+
+  #clock {
+    font-family: 'Orbitron', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 20px rgba(0,229,255,0.5);
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 3px;
+  }
+
+  .btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.05);
+    box-shadow: 0 0 12px rgba(0,229,255,0.2);
+  }
+
+  .btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.08);
+  }
+
+  /* TOOLBAR */
+  .toolbar {
+    position: sticky;
+    top: 64px;
+    z-index: 90;
+    background: rgba(5, 13, 18, 0.97);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    backdrop-filter: blur(8px);
+  }
+
+  .toolbar-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    opacity: 0.6;
+    white-space: nowrap;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    max-width: 320px;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    background: rgba(0,229,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 7px 12px 7px 32px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text-bright);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--dim); }
+
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dim);
+    font-size: 12px;
+  }
+
+  .count-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.2);
+    padding: 3px 10px;
+    border-radius: 2px;
+  }
+
+  .grid-size-btns {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .grid-btn {
+    width: 30px;
+    height: 28px;
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border-radius: 3px;
+    padding: 0;
+  }
+
+  .grid-btn svg { width: 14px; height: 14px; }
+  .grid-btn:hover { border-color: var(--accent); background: rgba(0,229,255,0.05); }
+  .grid-btn.active { border-color: var(--accent); background: rgba(0,229,255,0.1); }
+  .grid-btn.active svg rect, .grid-btn.active svg path { fill: var(--accent); }
+  .grid-btn svg rect, .grid-btn svg path { fill: var(--dim); }
+
+  /* MAIN */
+  main {
+    position: relative;
+    z-index: 1;
+    padding: 20px 24px 40px;
+  }
+
+  /* CAMERA GRID */
+  #cam-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--cam-w), 1fr));
+    gap: 12px;
+    transition: all 0.3s;
+  }
+
+  #cam-grid.cols-2 { grid-template-columns: repeat(2, 1fr); --cam-h: 320px; }
+  #cam-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  #cam-grid.cols-4 { grid-template-columns: repeat(4, 1fr); --cam-h: 200px; }
+  #cam-grid.cols-5 { grid-template-columns: repeat(5, 1fr); --cam-h: 180px; }
+
+  /* CAM CARD */
+  .cam-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.25s;
+    cursor: pointer;
+    animation: fadeIn 0.4s ease both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .cam-card:hover {
+    border-color: rgba(0,229,255,0.4);
+    box-shadow: 0 0 24px rgba(0,229,255,0.08), inset 0 0 24px rgba(0,229,255,0.02);
+    transform: translateY(-1px);
+    z-index: 2;
+  }
+
+  .cam-card.featured {
+    border-color: var(--accent);
+    box-shadow: 0 0 30px rgba(0,229,255,0.2);
+  }
+
+  /* Top bar */
+  .cam-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: rgba(0,229,255,0.04);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cam-id {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    opacity: 0.7;
+  }
+
+  .cam-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--accent2);
+  }
+
+  .cam-status .dot { width: 5px; height: 5px; }
+
+  /* Image wrapper */
+  .cam-img-wrap {
+    position: relative;
+    width: 100%;
+    padding-bottom: 75%;
+    background: #000;
+    overflow: hidden;
+  }
+
+  .cam-img-wrap img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.9) contrast(1.05);
+    transition: opacity 0.3s;
+  }
+
+  .cam-img-wrap .loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #000;
+  }
+
+  .loader-ring {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* Corner overlays */
+  .cam-corners {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .cam-corners::before,
+  .cam-corners::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: var(--accent);
+    border-style: solid;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .cam-corners::before { top: 6px; left: 6px; border-width: 1.5px 0 0 1.5px; }
+  .cam-corners::after  { bottom: 6px; right: 6px; border-width: 0 1.5px 1.5px 0; }
+
+  .cam-card:hover .cam-corners::before,
+  .cam-card:hover .cam-corners::after { opacity: 1; }
+
+  /* Timestamp overlay */
+  .cam-ts {
+    position: absolute;
+    bottom: 6px;
+    right: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: rgba(0,229,255,0.6);
+    background: rgba(0,0,0,0.6);
+    padding: 2px 5px;
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  /* Footer */
+  .cam-footer {
+    padding: 7px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .cam-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    margin-right: 8px;
+  }
+
+  .cam-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .cam-action {
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    color: var(--dim);
+    font-size: 10px;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+
+  .cam-action:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.08);
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    width: 90vw;
+    max-width: 900px;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0,229,255,0.15);
+    transform: scale(0.95);
+    transition: transform 0.25s;
+  }
+
+  .modal-overlay.open .modal { transform: scale(1); }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: rgba(0,229,255,0.06);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+  }
+
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 16px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .modal-close:hover { border-color: var(--danger); color: var(--danger); }
+
+  .modal-body {
+    padding: 0;
+  }
+
+  #modal-img {
+    width: 100%;
+    display: block;
+    max-height: 70vh;
+    object-fit: contain;
+    background: #000;
+  }
+
+  .modal-info {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .modal-cam-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+
+  .modal-meta {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    display: flex;
+    gap: 20px;
+  }
+
+  .modal-meta span { color: var(--accent); }
+
+  .modal-nav {
+    display: flex;
+    gap: 8px;
+  }
+
+  .nav-btn {
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    border-radius: 3px;
+    transition: all 0.15s;
+  }
+
+  .nav-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.06);
+  }
+
+  /* NO RESULTS */
+  .no-results {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 80px 0;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--dim);
+    font-size: 14px;
+    letter-spacing: 0.15em;
+  }
+
+  /* SCROLL BAR */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--dim); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    header { padding: 0 14px; }
+    .toolbar { padding: 10px 14px; flex-wrap: wrap; }
+    main { padding: 12px 14px 40px; }
+    #cam-grid { grid-template-columns: 1fr 1fr !important; gap: 8px; }
+    .status-bar { display: none; }
+    .header-center { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon"></div>
+    <div class="logo-text">
+      <h1>VIGO CCTV</h1>
+      <span>CONTROL CENTER</span>
+    </div>
+  </div>
+
+  <div class="header-center">
+    <div id="clock">--:--:--</div>
+    <div class="status-bar">
+      <div class="status-item"><div class="dot"></div> FEED ACTIVO</div>
+      <div class="status-item"><div class="dot"></div> <span id="online-count">55</span> CÁMARAS</div>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <button class="btn" onclick="refreshAll()">↻ REFRESH</button>
+    <button class="btn" id="auto-btn" onclick="toggleAuto()">AUTO OFF</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <span class="toolbar-label">FILTRO</span>
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="search" placeholder="Buscar cámara..." oninput="filterCams()">
+  </div>
+  <div class="count-badge" id="count-badge">55 / 55</div>
+  <div class="grid-size-btns">
+    <button class="grid-btn" onclick="setGrid(2)" title="2 columnas">
+      <svg viewBox="0 0 14 14"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg>
+    </button>
+    <button class="grid-btn active" onclick="setGrid(3)" title="3 columnas">
+      <svg viewBox="0 0 14 14"><rect x="0" y="0" width="3.5" height="3.5" rx="0.5"/><rect x="5.25" y="0" width="3.5" height="3.5" rx="0.5"/><rect x="10.5" y="0" width="3.5" height="3.5" rx="0.5"/><rect x="0" y="5.25" width="3.5" height="3.5" rx="0.5"/><rect x="5.25" y="5.25" width="3.5" height="3.5" rx="0.5"/><rect x="10.5" y="5.25" width="3.5" height="3.5" rx="0.5"/><rect x="0" y="10.5" width="3.5" height="3.5" rx="0.5"/><rect x="5.25" y="10.5" width="3.5" height="3.5" rx="0.5"/><rect x="10.5" y="10.5" width="3.5" height="3.5" rx="0.5"/></svg>
+    </button>
+    <button class="grid-btn" onclick="setGrid(4)" title="4 columnas">
+      <svg viewBox="0 0 14 14"><rect x="0" y="0" width="2.5" height="2.5" rx="0.3"/><rect x="3.83" y="0" width="2.5" height="2.5" rx="0.3"/><rect x="7.67" y="0" width="2.5" height="2.5" rx="0.3"/><rect x="11.5" y="0" width="2.5" height="2.5" rx="0.3"/><rect x="0" y="3.83" width="2.5" height="2.5" rx="0.3"/><rect x="3.83" y="3.83" width="2.5" height="2.5" rx="0.3"/><rect x="7.67" y="3.83" width="2.5" height="2.5" rx="0.3"/><rect x="11.5" y="3.83" width="2.5" height="2.5" rx="0.3"/><rect x="0" y="7.67" width="2.5" height="2.5" rx="0.3"/><rect x="3.83" y="7.67" width="2.5" height="2.5" rx="0.3"/><rect x="7.67" y="7.67" width="2.5" height="2.5" rx="0.3"/><rect x="11.5" y="7.67" width="2.5" height="2.5" rx="0.3"/></svg>
+    </button>
+    <button class="grid-btn" onclick="setGrid(5)" title="5 columnas">
+      <svg viewBox="0 0 14 14"><rect x="0" y="0" width="1.8" height="1.8" rx="0.3"/><rect x="3.05" y="0" width="1.8" height="1.8" rx="0.3"/><rect x="6.1" y="0" width="1.8" height="1.8" rx="0.3"/><rect x="9.15" y="0" width="1.8" height="1.8" rx="0.3"/><rect x="12.2" y="0" width="1.8" height="1.8" rx="0.3"/><rect x="0" y="3.05" width="1.8" height="1.8" rx="0.3"/><rect x="3.05" y="3.05" width="1.8" height="1.8" rx="0.3"/><rect x="6.1" y="3.05" width="1.8" height="1.8" rx="0.3"/><rect x="9.15" y="3.05" width="1.8" height="1.8" rx="0.3"/><rect x="12.2" y="3.05" width="1.8" height="1.8" rx="0.3"/><rect x="0" y="6.1" width="1.8" height="1.8" rx="0.3"/><rect x="3.05" y="6.1" width="1.8" height="1.8" rx="0.3"/><rect x="6.1" y="6.1" width="1.8" height="1.8" rx="0.3"/><rect x="9.15" y="6.1" width="1.8" height="1.8" rx="0.3"/><rect x="12.2" y="6.1" width="1.8" height="1.8" rx="0.3"/></svg>
+    </button>
+  </div>
+</div>
+
+<main>
+  <div id="cam-grid" class="cols-3"></div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">CAM — —</div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <img id="modal-img" src="" alt="">
+    </div>
+    <div class="modal-info">
+      <div>
+        <div class="modal-cam-name" id="modal-cam-name"></div>
+        <div class="modal-meta">
+          <span id="modal-cam-id"></span>
+          LAT <span id="modal-lat"></span>
+          LON <span id="modal-lon"></span>
+        </div>
+      </div>
+      <div class="modal-nav">
+        <button class="nav-btn" onclick="modalNav(-1)">◀ PREV</button>
+        <button class="nav-btn" onclick="modalNav(1)">NEXT ▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// DATA — todas las cámaras del Ayuntamiento de Vigo
+const CAMERAS = [
+  {"id":"01","nombre":"Praza de América 1","url":"http://camaras.vigo.org/webcam/camv2.php?id=01","lat":42.22104,"lon":-8.73269},
+  {"id":"02","nombre":"Praza de España","url":"http://camaras.vigo.org/webcam/camv2.php?id=02","lat":42.22922,"lon":-8.71976},
+  {"id":"03","nombre":"Urzáiz - Gran Vía - Lepanto","url":"http://camaras.vigo.org/webcam/camv2.php?id=03","lat":42.23439,"lon":-8.71660},
+  {"id":"04","nombre":"Colón - Policarpo Sanz - García Barbón","url":"http://camaras.vigo.org/webcam/camv2.php?id=04","lat":42.23763,"lon":-8.72058},
+  {"id":"05","nombre":"Castelao - Grove","url":"http://camaras.vigo.org/webcam/camv2.php?id=05","lat":42.21836,"lon":-8.74407},
+  {"id":"06","nombre":"Aragón - Jenaro de la Fuente","url":"http://camaras.vigo.org/webcam/camv2.php?id=06","lat":42.23201,"lon":-8.70232},
+  {"id":"07","nombre":"Travesía de Vigo - Gregorio Espino","url":"http://camaras.vigo.org/webcam/camv2.php?id=07","lat":42.23252,"lon":-8.70722},
+  {"id":"08","nombre":"Gran Vía - Tarragona","url":"http://camaras.vigo.org/webcam/camv2.php?id=08","lat":42.22237,"lon":-8.72550},
+  {"id":"09","nombre":"Av. Florida - Caramuxo","url":"http://camaras.vigo.org/webcam/camv2.php?id=09","lat":42.20723,"lon":-8.75131},
+  {"id":"10","nombre":"Paseo de Alfonso XII","url":"http://camaras.vigo.org/webcam/camv2.php?id=10","lat":42.23602,"lon":-8.72855},
+  {"id":"11","nombre":"Venezuela - Granada","url":"http://camaras.vigo.org/webcam/camv2.php?id=11","lat":42.23499,"lon":-8.72602},
+  {"id":"12","nombre":"Av. Madrid","url":"http://camaras.vigo.org/webcam/camv2.php?id=12","lat":42.22487,"lon":-8.71156},
+  {"id":"13","nombre":"Pizarro - Vázquez Varela","url":"http://camaras.vigo.org/webcam/camv2.php?id=13","lat":42.23061,"lon":-8.71531},
+  {"id":"14","nombre":"Sanjurjo Badía - Buenos Aires","url":"http://camaras.vigo.org/webcam/camv2.php?id=14","lat":42.24985,"lon":-8.69567},
+  {"id":"15","nombre":"Castrelos - Antonio Palacios","url":"http://camaras.vigo.org/webcam/camv2.php?id=15","lat":42.21502,"lon":-8.73244},
+  {"id":"16","nombre":"Camelias - Ourense","url":"http://camaras.vigo.org/webcam/camv2.php?id=16","lat":42.22584,"lon":-8.72940},
+  {"id":"17","nombre":"García Barbón - Isaac Peral","url":"http://camaras.vigo.org/webcam/camv2.php?id=17","lat":42.23924,"lon":-8.70851},
+  {"id":"18","nombre":"Plaza de la Industria","url":"http://camaras.vigo.org/webcam/camv2.php?id=18","lat":42.22450,"lon":-8.73608},
+  {"id":"19","nombre":"Travesía de Vigo - Aragón","url":"http://camaras.vigo.org/webcam/camv2.php?id=19","lat":42.24262,"lon":-8.69815},
+  {"id":"20","nombre":"Av. Portanet - Val miñor","url":"http://camaras.vigo.org/webcam/camv2.php?id=20","lat":42.21116,"lon":-8.73764},
+  {"id":"21","nombre":"Baixada Pontenova","url":"http://camaras.vigo.org/webcam/camv2.php?id=21","lat":42.22039,"lon":-8.72292},
+  {"id":"22","nombre":"Carral - Montero Ríos","url":"http://camaras.vigo.org/webcam/camv2.php?id=22","lat":42.24058,"lon":-8.72495},
+  {"id":"23","nombre":"Martínez Garrido - Ramón Nieto","url":"http://camaras.vigo.org/webcam/camv2.php?id=23","lat":42.23099,"lon":-8.70000},
+  {"id":"24","nombre":"Policarpo Sanz - Reconquista","url":"http://camaras.vigo.org/webcam/camv2.php?id=24","lat":42.23753,"lon":-8.72315},
+  {"id":"25","nombre":"Aeropuerto","url":"http://camaras.vigo.org/webcam/camv2.php?id=25","lat":42.22359,"lon":-8.63543},
+  {"id":"26","nombre":"Tomás Paredes - Av. Atlántida","url":"http://camaras.vigo.org/webcam/camv2.php?id=26","lat":42.22230,"lon":-8.75276},
+  {"id":"27","nombre":"Av. Europa - Samil","url":"http://camaras.vigo.org/webcam/camv2.php?id=27","lat":42.21129,"lon":-8.77428},
+  {"id":"28","nombre":"Martínez Garrido - Dr. Carracido","url":"http://camaras.vigo.org/webcam/camv2.php?id=28","lat":42.22695,"lon":-8.70167},
+  {"id":"29","nombre":"Florida - Manuel de Castro","url":"http://camaras.vigo.org/webcam/camv2.php?id=29","lat":42.21456,"lon":-8.74168},
+  {"id":"30","nombre":"Alfonso XIII - Cervantes","url":"http://camaras.vigo.org/webcam/camv2.php?id=30","lat":42.23625,"lon":-8.71639},
+  {"id":"31","nombre":"López Mora - Pintor Lugrís","url":"http://camaras.vigo.org/webcam/camv2.php?id=31","lat":42.22459,"lon":-8.73247},
+  {"id":"32","nombre":"Praza Isabel la Católica","url":"http://camaras.vigo.org/webcam/camv2.php?id=32","lat":42.23123,"lon":-8.71237},
+  {"id":"33","nombre":"Pi y Margall - Tomás Alonso","url":"http://camaras.vigo.org/webcam/camv2.php?id=33","lat":42.22808,"lon":-8.73240},
+  {"id":"34","nombre":"Areal - Miragaia","url":"http://camaras.vigo.org/webcam/camv2.php?id=34","lat":42.23880,"lon":-8.71171},
+  {"id":"35","nombre":"Avenida de Madrid - Seminario","url":"http://camaras.vigo.org/webcam/camv2.php?id=35","lat":42.21377,"lon":-8.69894},
+  {"id":"36","nombre":"Baixada ó Pontillón","url":"http://camaras.vigo.org/webcam/camv2.php?id=36","lat":42.21746,"lon":-8.72770},
+  {"id":"37","nombre":"Balaídos - Fragoso","url":"http://camaras.vigo.org/webcam/camv2.php?id=37","lat":42.21282,"lon":-8.73859},
+  {"id":"38","nombre":"Aragón - Padre Celso","url":"http://camaras.vigo.org/webcam/camv2.php?id=38","lat":42.23659,"lon":-8.70061},
+  {"id":"39","nombre":"Praza América 2","url":"http://camaras.vigo.org/webcam/camv2.php?id=39","lat":42.22050,"lon":-8.73328},
+  {"id":"40","nombre":"Hospital A. Cunqueiro","url":"http://camaras.vigo.org/webcam/camv2.php?id=40","lat":42.18989,"lon":-8.71797},
+  {"id":"41","nombre":"Gran Vía - Valle Inclán → Pr. América","url":"http://camaras.vigo.org/webcam/camv2.php?id=41","lat":42.22727,"lon":-8.72070},
+  {"id":"42","nombre":"Gran Vía - Valle Inclán → Pr. España","url":"http://camaras.vigo.org/webcam/camv2.php?id=42","lat":42.22707,"lon":-8.72060},
+  {"id":"43","nombre":"Colón - Urzáiz","url":"http://camaras.vigo.org/webcam/camv2.php?id=43","lat":42.23579,"lon":-8.71998},
+  {"id":"44","nombre":"Camelias - Romil","url":"http://camaras.vigo.org/webcam/camv2.php?id=44","lat":42.23137,"lon":-8.72992},
+  {"id":"45","nombre":"Emilia Pardo Bazán - A. Palacios","url":"http://camaras.vigo.org/webcam/camv2.php?id=45","lat":42.22322,"lon":-8.71216},
+  {"id":"46","nombre":"Gregorio Espino - Reiseñor","url":"http://camaras.vigo.org/webcam/camv2.php?id=46","lat":42.22928,"lon":-8.70714},
+  {"id":"47","nombre":"García Barbón - Serafín Avendaño","url":"http://camaras.vigo.org/webcam/camv2.php?id=47","lat":42.23694,"lon":-8.71241},
+  {"id":"48","nombre":"Camelias - Dr. Marañón","url":"http://camaras.vigo.org/webcam/camv2.php?id=48","lat":42.22817,"lon":-8.73063},
+  {"id":"49","nombre":"Vía Norte - Escultor Gregorio Fdez","url":"http://camaras.vigo.org/webcam/camv2.php?id=49","lat":42.23464,"lon":-8.71024},
+  {"id":"50","nombre":"Vía Norte - Urzáiz","url":"http://camaras.vigo.org/webcam/camv2.php?id=50","lat":42.23355,"lon":-8.71396},
+  {"id":"51","nombre":"Trav. de Vigo - Dr. Canoa","url":"http://camaras.vigo.org/webcam/camv2.php?id=51","lat":42.23708,"lon":-8.70309},
+  {"id":"52","nombre":"Av. Beiramar - Bouzas","url":"http://camaras.vigo.org/webcam/camv2.php?id=52","lat":42.22639,"lon":-8.73822},
+  {"id":"53","nombre":"Av. Beiramar - Berbés","url":"http://camaras.vigo.org/webcam/camv2.php?id=53","lat":42.22758,"lon":-8.73787},
+  {"id":"54","nombre":"Trav. de Vigo - Mestre Montes","url":"http://camaras.vigo.org/webcam/camv2.php?id=54","lat":42.24064,"lon":-8.70270},
+  {"id":"55","nombre":"Gran Vía - Venezuela","url":"http://camaras.vigo.org/webcam/camv2.php?id=55","lat":42.23186,"lon":-8.71802},
+  {"id":"001","nombre":"Túnel Orillamar - Berbés","url":"http://camaras.vigo.org/webcam/camv2.php?id=001","lat":42.23704,"lon":-8.72996},
+  {"id":"003","nombre":"Túnel Orillamar - Cánovas del Castillo","url":"http://camaras.vigo.org/webcam/camv2.php?id=003","lat":42.23895,"lon":-8.72926},
+  {"id":"011","nombre":"Túnel Orillamar - Areal","url":"http://camaras.vigo.org/webcam/camv2.php?id=011","lat":42.23928,"lon":-8.71733},
+  {"id":"616","nombre":"Túnel Areal - Sanjurjo Badía","url":"http://camaras.vigo.org/webcam/camv2.php?id=616","lat":42.24290,"lon":-8.70680}
+];
+
+let filtered = [...CAMERAS];
+let modalIdx = 0;
+let autoInterval = null;
+let autoEnabled = false;
+const REFRESH_MS = 7000; // Las imágenes del Ayuntamiento se actualizan ~5-7s
+
+// BUILD timestamp
+function ts() {
+  return '?t=' + Date.now();
+}
+
+// CLOCK
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('es-ES', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// RENDER
+function render() {
+  const grid = document.getElementById('cam-grid');
+  grid.innerHTML = '';
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="no-results">[ NO SE ENCONTRARON CÁMARAS ]</div>';
+    return;
+  }
+
+  filtered.forEach((cam, i) => {
+    const imgSrc = cam.url + ts();
+    const div = document.createElement('div');
+    div.className = 'cam-card';
+    div.style.animationDelay = (i * 0.025) + 's';
+    div.innerHTML = `
+      <div class="cam-header">
+        <div class="cam-id">CAM · ${cam.id}</div>
+        <div class="cam-status"><div class="dot"></div> LIVE</div>
+      </div>
+      <div class="cam-img-wrap" onclick="openModal(${CAMERAS.indexOf(cam)})">
+        <div class="loading" id="loading-${cam.id}">
+          <div class="loader-ring"></div>
+          <span>CONECTANDO</span>
+        </div>
+        <img
+          id="img-${cam.id}"
+          src="${imgSrc}"
+          alt="${cam.nombre}"
+          style="opacity:0"
+          onload="imgLoaded('${cam.id}')"
+          onerror="imgError('${cam.id}')"
+          crossorigin="anonymous"
+        >
+        <div class="cam-corners"></div>
+        <div class="cam-ts" id="ts-${cam.id}">—</div>
+      </div>
+      <div class="cam-footer">
+        <div class="cam-name" title="${cam.nombre}">${cam.nombre}</div>
+        <div class="cam-actions">
+          <a href="${cam.url}" target="_blank" class="cam-action" title="Abrir en nueva pestaña" onclick="event.stopPropagation()">↗</a>
+          <button class="cam-action" title="Refrescar" onclick="event.stopPropagation();refreshSingle('${cam.id}','${cam.url}')">↻</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+
+  document.getElementById('count-badge').textContent =
+    `${filtered.length} / ${CAMERAS.length}`;
+}
+
+function imgLoaded(id) {
+  const img = document.getElementById('img-' + id);
+  const load = document.getElementById('loading-' + id);
+  const tsEl = document.getElementById('ts-' + id);
+  if (img) { img.style.opacity = '1'; }
+  if (load) { load.style.display = 'none'; }
+  if (tsEl) {
+    const now = new Date();
+    tsEl.textContent = now.toLocaleTimeString('es-ES', { hour12: false });
+  }
+}
+
+function imgError(id) {
+  const load = document.getElementById('loading-' + id);
+  if (load) {
+    load.innerHTML = '<span style="color:#ff4466;font-size:9px;letter-spacing:0.15em">SIN SEÑAL</span>';
+  }
+}
+
+function refreshSingle(id, url) {
+  const img = document.getElementById('img-' + id);
+  const load = document.getElementById('loading-' + id);
+  if (img) {
+    img.style.opacity = '0';
+    load.style.display = 'flex';
+    load.innerHTML = '<div class="loader-ring"></div><span>CONECTANDO</span>';
+    img.src = url + ts();
+  }
+}
+
+function refreshAll() {
+  filtered.forEach(cam => refreshSingle(cam.id, cam.url));
+}
+
+// AUTO REFRESH
+function toggleAuto() {
+  autoEnabled = !autoEnabled;
+  const btn = document.getElementById('auto-btn');
+  if (autoEnabled) {
+    btn.textContent = 'AUTO ON';
+    btn.classList.add('active');
+    autoInterval = setInterval(refreshAll, REFRESH_MS);
+  } else {
+    btn.textContent = 'AUTO OFF';
+    btn.classList.remove('active');
+    clearInterval(autoInterval);
+  }
+}
+
+// FILTER
+function filterCams() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  filtered = q
+    ? CAMERAS.filter(c => c.nombre.toLowerCase().includes(q) || c.id.includes(q))
+    : [...CAMERAS];
+  render();
+}
+
+// GRID SIZE
+function setGrid(n) {
+  const grid = document.getElementById('cam-grid');
+  grid.className = 'cols-' + n;
+  document.querySelectorAll('.grid-btn').forEach((b, i) => {
+    b.classList.toggle('active', [2,3,4,5][i] === n);
+  });
+}
+
+// MODAL
+function openModal(idx) {
+  modalIdx = idx;
+  updateModal();
+  document.getElementById('modal').classList.add('open');
+}
+
+function updateModal() {
+  const cam = CAMERAS[modalIdx];
+  document.getElementById('modal-title').textContent = `CAM ${cam.id} — VISTA AMPLIADA`;
+  document.getElementById('modal-img').src = cam.url + ts();
+  document.getElementById('modal-cam-name').textContent = cam.nombre;
+  document.getElementById('modal-cam-id').textContent = `ID: ${cam.id}`;
+  document.getElementById('modal-lat').textContent = cam.lat.toFixed(5);
+  document.getElementById('modal-lon').textContent = cam.lon.toFixed(5);
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) closeModalDirect();
+}
+
+function closeModalDirect() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function modalNav(dir) {
+  modalIdx = (modalIdx + dir + CAMERAS.length) % CAMERAS.length;
+  updateModal();
+}
+
+// ESC key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModalDirect();
+  if (e.key === 'ArrowRight') { if (document.getElementById('modal').classList.contains('open')) modalNav(1); }
+  if (e.key === 'ArrowLeft')  { if (document.getElementById('modal').classList.contains('open')) modalNav(-1); }
+});
+
+// INIT
+render();
+</script>
+</body>
+</html>

@@ -1,5 +1,8 @@
 {
+  "functions": {
+    "cam.js": { "runtime": "nodejs20.x" }
+  },
   "rewrites": [
-    { "source": "/api/cam", "destination": "/api/cam.js" }
+    { "source": "/api/cam", "destination": "/cam.js" }
   ]
 }
